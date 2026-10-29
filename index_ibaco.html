@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ErgoVision | Eye Comfort Assistant</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg: #f8f5fb;
+      --card-bg: #ffffff;
+      --card-border: #e9e1f0;
+      --berry-primary: #5b2b6f;
+      --berry-hover: #432052;
+      --berry-light: #f4ecf8;
+      --berry-border: #dfc9e9;
+      --cream: #f5f0f8;
+      --text-dark: #251d2b;
+      --text-muted: #766b7d;
+      --success: #267a61;
+      --success-light: #eaf6f0;
+      --success-border: #b8dfce;
+      --danger: #b42335;
+      --danger-light: #fff0f1;
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-dark);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 1.5rem;
+      position: relative;
+    }
+
+    /* FULL-SCREEN VIRTUAL RING LIGHT / AUTO-BRIGHTNESS OVERLAY */
+    #ring-light-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(255, 253, 245, 0.94);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.8s ease;
+      z-index: 9999;
+      box-shadow: inset 0 0 120px 40px rgba(255, 245, 220, 0.85);
+    }
+
+    #ring-light-overlay.active {
+      opacity: 1;
+    }
+
+    /* HEADER */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      padding: 1rem 1.75rem;
+      border-radius: var(--radius-md);
+      margin-bottom: 1.5rem;
+      box-shadow: 0 4px 20px rgba(159, 18, 57, 0.03);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .brand-mark {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--berry-primary);
+    }
+
+    .brand h1 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      color: var(--text-dark);
+    }
+
+    .brand span {
+      color: var(--berry-primary);
+    }
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+    }
+
+    .camera-select-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .camera-select-wrapper label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    select {
+      background: var(--cream);
+      border: 1px solid var(--card-border);
+      color: var(--text-dark);
+      padding: 0.45rem 0.8rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.85rem;
+      outline: none;
+      cursor: pointer;
+      font-weight: 500;
+    }
+
+    select:focus {
+      border-color: var(--berry-primary);
+    }
+
+    .session-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      background: var(--cream);
+      border: 1px solid var(--card-border);
+      padding: 0.45rem 0.8rem;
+      border-radius: var(--radius-sm);
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .btn {
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 0.5rem 1rem;
+      border-radius: var(--radius-sm);
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-calibrate {
+      background: var(--berry-primary);
+      color: #ffffff;
+    }
+
+    .btn-calibrate:hover {
+      background: var(--berry-hover);
+    }
+
+    .btn-light {
+      background: var(--cream);
+      color: var(--text-dark);
+      border: 1px solid var(--card-border);
+    }
+
+    .btn-light.forced-on {
+      background: #fef3c7;
+      border-color: #fde68a;
+      color: #b45309;
+    }
+
+    .btn-reset {
+      background: transparent;
+      color: var(--text-muted);
+      border: 1px solid var(--card-border);
+    }
+
+    .btn-reset:hover {
+      background: var(--cream);
+      color: var(--text-dark);
+    }
+
+    /* MAIN COCKPIT */
+    main {
+      display: grid;
+      grid-template-columns: 1.45fr 1fr;
+      gap: 1.5rem;
+      flex: 1;
+    }
+
+    /* STREAM VIEW */
+    .stream-panel {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 4px 20px rgba(159, 18, 57, 0.02);
+    }
+
+    .stream-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.85rem;
+    }
+
+    .stream-meta-left {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .stream-meta-title {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .light-assist-badge {
+      display: none;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: #b45309;
+      background: #fef3c7;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      border: 1px solid #fde68a;
+    }
+
+    .badge-live {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--berry-primary);
+      background: var(--berry-light);
+      padding: 0.25rem 0.6rem;
+      border-radius: 20px;
+      border: 1px solid var(--berry-border);
+    }
+
+    .viewport {
+      width: 100%;
+      flex: 1;
+      min-height: 440px;
+      background: var(--cream);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      position: relative;
+      border: 2px solid var(--card-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .viewport img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .viewport-slouching {
+      border-color: var(--danger) !important;
+      box-shadow: 0 0 25px rgba(220, 38, 38, 0.15) !important;
+    }
+
+    /* TELEMETRY PANEL */
+    .telemetry-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-md);
+      padding: 1.25rem 1.5rem;
+      box-shadow: 0 4px 20px rgba(159, 18, 57, 0.02);
+    }
+
+    .card-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+    }
+
+    .card-body {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 0.85rem;
+    }
+
+    .card-value {
+      font-size: 2.1rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      color: var(--text-dark);
+    }
+
+    .status-badge {
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 0.25rem 0.65rem;
+      border-radius: 6px;
+    }
+
+    .status-good {
+      background: var(--success-light);
+      color: var(--success);
+      border: 1px solid var(--success-border);
+    }
+
+    .status-bad {
+      background: var(--danger-light);
+      color: var(--danger);
+      border: 1px solid #fecaca;
+    }
+
+    .status-neutral {
+      background: var(--berry-light);
+      color: var(--berry-primary);
+      border: 1px solid var(--berry-border);
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 6px;
+      background: var(--cream);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      height: 100%;
+      border-radius: 999px;
+      transition: width 0.3s ease, background 0.3s ease;
+    }
+
+    .subcard-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+
+    .subcard {
+      background: var(--cream);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-sm);
+      padding: 0.85rem 1rem;
+    }
+
+    .subcard-title {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-bottom: 0.2rem;
+      font-weight: 500;
+    }
+
+    .subcard-num {
+      font-size: 1.35rem;
+      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-dark);
+    }
+
+    /* OFFLINE BANNER */
+    #connection-banner {
+      display: none;
+      position: absolute;
+      inset: 0;
+      background: rgba(251, 248, 243, 0.95);
+      z-index: 20;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-md);
+      text-align: center;
+      padding: 1.5rem;
+    }
+
+    #connection-banner h3 {
+      font-size: 1rem;
+      margin-bottom: 0.4rem;
+      color: var(--berry-primary);
+      font-weight: 700;
+    }
+
+    #connection-banner p {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .brand { flex-wrap: wrap; }
+    .brand-subtitle {
+      display: block;
+      width: 100%;
+      margin-left: 1.25rem;
+      margin-top: -0.35rem;
+      color: var(--text-muted);
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 1.15px;
+    }
+    .alert-center {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-lg);
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.25rem;
+      box-shadow: 0 4px 20px rgba(91, 43, 111, 0.04);
+    }
+    .alert-center-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 0.85rem;
+    }
+    .alert-title-wrap { display: flex; align-items: center; gap: 0.65rem; }
+    .alert-title-wrap h2 { font-size: 0.95rem; font-weight: 700; }
+    .system-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      color: var(--text-muted);
+      font-size: 0.76rem;
+      font-weight: 600;
+    }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #b7a9c0; }
+    .status-dot.online { background: var(--success); }
+    .status-dot.offline { background: var(--danger); }
+    .alert-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .alert-actions .btn { padding: 0.45rem 0.75rem; }
+    .alert-current {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 0.8rem 0.9rem;
+      background: #faf8fc;
+      min-height: 58px;
+    }
+    .alert-current.warning { background: #fff8e9; border-color: #f0d9a6; }
+    .alert-current.danger { background: var(--danger-light); border-color: #f0c3c9; }
+    .alert-current.success { background: var(--success-light); border-color: var(--success-border); }
+    .alert-current.info { background: var(--berry-light); border-color: var(--berry-border); }
+    .alert-icon {
+      width: 30px; height: 30px; flex: 0 0 30px;
+      display: grid; place-items: center;
+      border-radius: 9px; background: rgba(91,43,111,0.08);
+      color: var(--berry-primary); font-weight: 800;
+    }
+    .alert-copy { flex: 1; min-width: 0; }
+    .alert-copy strong { display: block; font-size: 0.82rem; margin: 0.05rem 0 0.2rem; }
+    .alert-copy p { font-size: 0.76rem; line-height: 1.45; color: #675b6e; }
+    .alert-time { font-size: 0.68rem; color: var(--text-muted); white-space: nowrap; }
+    .alert-history-head {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 0.75rem; margin-top: 0.9rem; margin-bottom: 0.4rem;
+    }
+    .alert-history-head h3 { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.65px; color: var(--text-muted); }
+    #alert-count { font-size: 0.7rem; color: var(--text-muted); }
+    #alert-history { list-style: none; display: grid; gap: 0.35rem; }
+    .alert-history-item {
+      display: flex; align-items: flex-start; gap: 0.55rem;
+      padding: 0.48rem 0.15rem; border-bottom: 1px solid #f0ebf3;
+      font-size: 0.74rem; color: #514658;
+    }
+    .alert-history-item:last-child { border-bottom: 0; }
+    .history-marker { color: var(--berry-primary); font-weight: 800; }
+    .history-time { margin-left: auto; color: var(--text-muted); font-size: 0.67rem; white-space: nowrap; }
+    .btn-test { background: var(--berry-primary); color: #fff; }
+    .btn-test:hover { background: var(--berry-hover); }
+    .btn-notify { background: var(--cream); color: var(--text-dark); border: 1px solid var(--card-border); }
+    .alert-footnote { margin-top: 0.65rem; font-size: 0.68rem; line-height: 1.4; color: var(--text-muted); }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+    @media (max-width: 900px) {
+      body { padding: 1rem; }
+      header { align-items: flex-start; gap: 1rem; flex-direction: column; }
+      .header-controls { width: 100%; flex-wrap: wrap; }
+      main { grid-template-columns: 1fr; }
+      .viewport { min-height: 320px; }
+    }
+    @media (max-width: 560px) {
+      .alert-current { gap: 0.55rem; padding: 0.7rem; }
+      .alert-time { display: none; }
+      .alert-actions { width: 100%; }
+    }
+
+  </style>
+</head>
+<body>
+
+  <!-- FILL-LIGHT OVERLAY -->
+  <div id="ring-light-overlay"></div>
+
+  <!-- HEADER -->
+  <header>
+    <div class="brand">
+      <div class="brand-mark"></div>
+      <h1>Ergo<span>Vision</span></h1><span class="brand-subtitle">EYE COMFORT ASSISTANT</span>
+    </div>
+
+    <div class="header-controls">
+      <!-- Camera Selection -->
+      <div class="camera-select-wrapper">
+        <label for="cameraSelect">Camera</label>
+        <select id="cameraSelect" onchange="handleCameraSwitch(this.value)">
+          <option value="0">Default Camera (0)</option>
+          <option value="1">Secondary Camera (1)</option>
+          <option value="2">External USB Camera (2)</option>
+        </select>
+      </div>
+
+      <div class="session-badge">Session: <span id="uptime-text">00:00</span></div>
+      <div class="session-badge" id="warningTimerBadge">Check-in: <span id="warning-timer">02:00</span></div>
+      
+      <!-- Manual Light Toggle -->
+      <button class="btn btn-light" id="lightToggleBtn" onclick="toggleManualLight()">Fill Light: Auto</button>
+      
+      <button class="btn btn-calibrate" onclick="handleCalibrate()">Calibrate</button>
+      <button class="btn btn-reset" onclick="handleReset()">Reset</button>
+    </div>
+  </header>
+
+  <!-- MAIN COCKPIT -->
+  <main>
+    <!-- VIDEO STREAM -->
+    <section class="stream-panel">
+      <div class="stream-meta">
+        <div class="stream-meta-left">
+          <span class="stream-meta-title">Local Edge Video Feed</span>
+          <span class="light-assist-badge" id="lightAssistBadge">Fill Light Active</span>
+        </div>
+        <span class="badge-live">Active Stream</span>
+      </div>
+
+      <div class="viewport" id="viewport">
+        <img id="videoStream" src="http://127.0.0.1:5000/video_feed" alt="Camera Stream">
+        <div id="connection-banner">
+          <h3>Connecting to Engine</h3>
+          <p>Confirm python proto5_fixed.py is running on port 5000.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- METRICS -->
+    <section class="telemetry-panel">
+      
+      <!-- POSTURE -->
+      <div class="card">
+        <div class="card-label">Posture Alignment</div>
+        <div class="card-body">
+          <div class="card-value" id="postureScore">100%</div>
+          <span class="status-badge status-good" id="postureBadge">Good</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-bar" id="postureBar" style="width: 100%; background: var(--success);"></div>
+        </div>
+      </div>
+
+      <!-- FOCUS -->
+      <div class="card">
+        <div class="card-label">Visual Attention</div>
+        <div class="card-body">
+          <div class="card-value" id="focusScore">100%</div>
+          <span class="status-badge status-good" id="focusBadge">Focused</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-bar" id="focusBar" style="width: 100%; background: var(--berry-primary);"></div>
+        </div>
+      </div>
+
+      <!-- BLINKS & EYE STRAIN -->
+      <div class="card">
+        <div class="card-label">Blink and Fatigue Metrics</div>
+        <div class="subcard-grid">
+          <div class="subcard">
+            <div class="subcard-title">Session Blinks</div>
+            <div class="subcard-num" id="blinkCount">0</div>
+          </div>
+          <div class="subcard">
+            <div class="subcard-title">Frequency</div>
+            <div class="subcard-num" id="blinkRate">0 <span style="font-size:0.75rem; color:var(--text-muted); font-weight:normal;">/min</span></div>
+          </div>
+        </div>
+        <p id="blink-note" style="font-size:0.72rem;color:var(--text-muted);margin-top:0.7rem;">Blink values are estimates for presentation mode.</p>
+      </div>
+
+    </section>
+  </main>
+  <section class="alert-center" aria-labelledby="alert-heading">
+    <div class="alert-center-head">
+      <div>
+        <div class="alert-title-wrap">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <h2 id="alert-heading">System alerts</h2>
+        </div>
+        <div class="system-status" style="margin-top:0.45rem">
+          <span id="connection-dot" class="status-dot offline"></span>
+          <span id="connection-status">Connecting to ErgoVision engine…</span>
+        </div>
+      </div>
+      <div class="alert-actions">
+        <button class="btn btn-test" type="button" onclick="triggerTestAlert()">Test alert</button>
+        <button class="btn btn-notify" type="button" id="notifyBtn" onclick="enableDesktopNotifications()">Enable desktop alerts</button>
+      </div>
+    </div>
+    <div id="current-alert" class="alert-current info" role="status" aria-live="polite">
+      <div class="alert-icon" id="current-alert-icon" aria-hidden="true">i</div>
+      <div class="alert-copy">
+        <strong id="current-alert-title">Waiting for camera data</strong>
+        <p id="current-alert-message">Alerts will appear here when the app detects a check-in, posture change, camera issue, or connection problem.</p>
+      </div>
+      <span class="alert-time" id="current-alert-time">READY</span>
+    </div>
+    <div class="alert-history-head">
+      <h3>Recent activity</h3>
+      <span id="alert-count">0 events</span>
+    </div>
+    <ul id="alert-history" aria-label="Recent alert history">
+      <li class="alert-history-item"><span class="history-marker">•</span><span>No events yet. Use “Test alert” to verify the alert system.</span></li>
+    </ul>
+    <p class="alert-footnote">Blink readings are estimates in demo mode. Alerts are informational and do not diagnose eye conditions.</p>
+  </section>
+
+  <script>
+    const BACKEND_URL = "http://127.0.0.1:5000";
+    let isConnected = false;
+    let offlineAlertSent = false;
+    let manualLightMode = null; // null = Auto, true = Forced On, false = Forced Off
+
+    // Alert state is deliberately separate from the fast telemetry polling loop.
+    const alertHistory = [];
+    const alertCooldowns = new Map();
+    const activeAlertKeys = new Set();
+    let noFaceSince = null;
+    let postureWarningSince = null;
+    let lookingAwaySince = null;
+    let checkInAlertSent = false;
+    let lastTelemetry = null;
+    const ALERT_COOLDOWN_MS = 30000;
+
+    function clockLabel() {
+      return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    }
+
+    function renderAlert(type, title, message, source = 'System') {
+      const panel = document.getElementById('current-alert');
+      const icon = document.getElementById('current-alert-icon');
+      panel.className = `alert-current ${type}`;
+      icon.textContent = type === 'danger' ? '!' : type === 'warning' ? '!' : type === 'success' ? '✓' : 'i';
+      document.getElementById('current-alert-title').textContent = title;
+      document.getElementById('current-alert-message').textContent = message;
+      document.getElementById('current-alert-time').textContent = clockLabel();
+      addHistory(type, title, message, source);
+    }
+
+    function addHistory(type, title, message, source) {
+      const time = clockLabel();
+      alertHistory.unshift({ type, title, message, source, time });
+      if (alertHistory.length > 8) alertHistory.length = 8;
+      const list = document.getElementById('alert-history');
+      list.replaceChildren();
+      alertHistory.forEach((item) => {
+        const li = document.createElement('li');
+        li.className = 'alert-history-item';
+        const marker = document.createElement('span');
+        marker.className = 'history-marker';
+        marker.textContent = item.type === 'danger' ? '!' : item.type === 'warning' ? '!' : item.type === 'success' ? '✓' : '•';
+        const text = document.createElement('span');
+        const strong = document.createElement('strong');
+        strong.textContent = `${item.title}: `;
+        text.append(strong, document.createTextNode(item.message));
+        const timestamp = document.createElement('span');
+        timestamp.className = 'history-time';
+        timestamp.textContent = item.time;
+        li.append(marker, text, timestamp);
+        list.appendChild(li);
+      });
+      document.getElementById('alert-count').textContent = `${alertHistory.length} event${alertHistory.length === 1 ? '' : 's'}`;
+    }
+
+    function sendAlert(key, type, title, message, { notify = true, cooldown = ALERT_COOLDOWN_MS } = {}) {
+      const now = Date.now();
+      const last = alertCooldowns.get(key) || 0;
+      if (now - last < cooldown) return false;
+      alertCooldowns.set(key, now);
+      renderAlert(type, title, message, key);
+      if (notify && 'Notification' in window && Notification.permission === 'granted') {
+        try { new Notification(title, { body: message, tag: key, silent: true }); } catch (_) {}
+      }
+      return true;
+    }
+
+    function setConnectionStatus(online, message) {
+      document.getElementById('connection-dot').className = `status-dot ${online ? 'online' : 'offline'}`;
+      document.getElementById('connection-status').textContent = message;
+    }
+
+    function processAlertSignals(data) {
+      const now = Date.now();
+
+      if (!data.face_detected) {
+        if (noFaceSince === null) noFaceSince = now;
+        if (now - noFaceSince >= 3000 && !activeAlertKeys.has('no-face')) {
+          activeAlertKeys.add('no-face');
+          sendAlert('no-face', 'warning', 'Camera cannot see a face', 'Move into the camera frame so monitoring can continue.', { cooldown: 120000 });
+        }
+      } else {
+        noFaceSince = null;
+        activeAlertKeys.delete('no-face');
+      }
+
+      const posture = String(data.posture_status || '');
+      const poorPosture = posture === 'Adjust Position' || posture === 'Slouching';
+      if (poorPosture) {
+        if (postureWarningSince === null) postureWarningSince = now;
+        if (now - postureWarningSince >= 5000 && !activeAlertKeys.has('posture')) {
+          activeAlertKeys.add('posture');
+          sendAlert('posture', 'warning', 'Posture check', 'Try sitting back in your calibrated position.', { cooldown: 90000 });
+        }
+      } else {
+        postureWarningSince = null;
+        activeAlertKeys.delete('posture');
+      }
+
+      const attention = String(data.attention_status || '');
+      if (attention === 'Looking Away') {
+        if (lookingAwaySince === null) lookingAwaySince = now;
+        if (now - lookingAwaySince >= 8000 && !activeAlertKeys.has('looking-away')) {
+          activeAlertKeys.add('looking-away');
+          sendAlert('looking-away', 'warning', 'Screen attention changed', 'If you are taking a break, that is fine. Return when ready.', { cooldown: 90000 });
+        }
+      } else {
+        lookingAwaySince = null;
+        activeAlertKeys.delete('looking-away');
+      }
+
+      const elapsed = Number(data.session_uptime_seconds || 0);
+      const warningAfter = Number(data.warning_after_seconds || 120);
+      if ((Boolean(data.warning_due) || elapsed >= warningAfter) && !checkInAlertSent) {
+        checkInAlertSent = true;
+        sendAlert('eye-check-in', 'warning', 'Eye comfort check-in', 'Pause briefly, look into the distance, and blink naturally before continuing.', { cooldown: 0 });
+      }
+
+      // Never interpret the backend's simulated blink counter as a real fatigue signal.
+      if (data.demo_mode && data.eye_status === 'Demo estimate') {
+        const note = 'Demo blink estimate is active; blink-based fatigue alerts are disabled until real blink detection is available.';
+        if (!activeAlertKeys.has('demo-blink-note')) {
+          activeAlertKeys.add('demo-blink-note');
+          addHistory('info', 'Demo mode', note, 'Blink monitor');
+        }
+      }
+      lastTelemetry = data;
+    }
+
+    function triggerTestAlert() {
+      sendAlert(`test-${Date.now()}`, 'success', 'Test alert delivered', 'The in-app alert panel and event history are working.', { cooldown: 0, notify: false });
+      if ('Notification' in window && Notification.permission === 'granted') {
+        try { new Notification('ErgoVision test alert', { body: 'Desktop notifications are enabled.', silent: true }); } catch (_) {}
+      }
+    }
+
+    async function enableDesktopNotifications() {
+      const btn = document.getElementById('notifyBtn');
+      if (!('Notification' in window)) {
+        sendAlert('notification-unsupported', 'info', 'Desktop alerts unavailable', 'This browser does not support desktop notifications.', { cooldown: 0 });
+        return;
+      }
+      try {
+        const permission = await Notification.requestPermission();
+        if (permission === 'granted') {
+          btn.textContent = 'Desktop alerts enabled';
+          sendAlert('notification-enabled', 'success', 'Desktop alerts enabled', 'ErgoVision can now show system notifications while this page is open.', { cooldown: 0 });
+        } else {
+          sendAlert('notification-denied', 'warning', 'Desktop alerts not enabled', 'Browser permission was not granted. In-app alerts will still work.', { cooldown: 0 });
+        }
+      } catch (_) {
+        sendAlert('notification-error', 'warning', 'Could not enable desktop alerts', 'Use the in-app alert panel; browser permission was unavailable.', { cooldown: 0 });
+      }
+    }
+
+    function formatTime(seconds) {
+      const mins = Math.floor(seconds / 60);
+      const secs = seconds % 60;
+      return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    }
+
+    async function fetchTelemetry() {
+      try {
+        const response = await fetch(`${BACKEND_URL}/api/telemetry`);
+        if (!response.ok) throw new Error();
+        
+        const data = await response.json();
+        
+        if (!isConnected) {
+          document.getElementById('connection-banner').style.display = 'none';
+          isConnected = true;
+          setConnectionStatus(true, 'Engine connected · telemetry updating');
+          if (offlineAlertSent) {
+            sendAlert('engine-reconnected', 'success', 'Monitoring engine reconnected', 'Live telemetry has resumed.', { cooldown: 0 });
+          } else if (alertHistory.length === 0) {
+            renderAlert('success', 'ErgoVision connected', 'Telemetry is arriving from the local monitoring engine.', 'Connection');
+          }
+          offlineAlertSent = false;
+        } else {
+          setConnectionStatus(true, 'Engine connected · telemetry updating');
+        }
+        processAlertSignals(data);
+
+        // Auto-Brightness / Screen Fill Light Logic
+        const ringLight = document.getElementById('ring-light-overlay');
+        const lightBadge = document.getElementById('lightAssistBadge');
+        const shouldLight = (manualLightMode !== null) ? manualLightMode : data.low_light;
+
+        if (shouldLight) {
+          ringLight.classList.add('active');
+          lightBadge.style.display = 'inline-block';
+        } else {
+          ringLight.classList.remove('active');
+          lightBadge.style.display = 'none';
+        }
+
+        // Posture Card
+        const postureBadge = document.getElementById('postureBadge');
+        const postureBar = document.getElementById('postureBar');
+        const postureScore = document.getElementById('postureScore');
+        const viewport = document.getElementById('viewport');
+
+        postureBadge.innerText = data.posture_status;
+        postureScore.innerText = `${data.posture_score}%`;
+        postureBar.style.width = `${data.posture_score}%`;
+
+        if (data.posture_status === "Slouching" || data.posture_status === "Adjust Position") {
+          postureBadge.className = "status-badge status-bad";
+          postureBar.style.background = "var(--danger)";
+          viewport.classList.add("viewport-slouching");
+        } else if (data.posture_status.includes("Calibrating")) {
+          postureBadge.className = "status-badge status-neutral";
+          postureBar.style.background = "var(--berry-primary)";
+          viewport.classList.remove("viewport-slouching");
+        } else if (data.posture_status === "No Face Detected") {
+          postureBadge.className = "status-badge status-neutral";
+          postureBar.style.background = "var(--berry-primary)";
+          viewport.classList.remove("viewport-slouching");
+        } else {
+          postureBadge.className = "status-badge status-good";
+          postureBar.style.background = "var(--success)";
+          viewport.classList.remove("viewport-slouching");
+        }
+
+        // Focus Card
+        const focusBadge = document.getElementById('focusBadge');
+        const focusBar = document.getElementById('focusBar');
+        const focusScore = document.getElementById('focusScore');
+
+        focusBadge.innerText = data.attention_status;
+        focusScore.innerText = `${data.focus_score}%`;
+        focusBar.style.width = `${data.focus_score}%`;
+
+        if (data.attention_status === "Looking Away" || data.attention_status === "No Face Detected") {
+          focusBadge.className = "status-badge status-bad";
+          focusBar.style.background = "var(--danger)";
+        } else {
+          focusBadge.className = "status-badge status-good";
+          focusBar.style.background = "var(--berry-primary)";
+        }
+
+        // Blinks & Session Time
+        document.getElementById('blinkCount').innerText = data.blink_count;
+        document.getElementById('blinkRate').innerHTML = `${data.blinks_per_min} <span style="font-size:0.75rem; color:var(--text-muted); font-weight:normal;">/min</span>`;
+        document.getElementById('uptime-text').innerText = formatTime(data.session_uptime_seconds);
+
+        // Two-minute check-in timer; backend is the source of truth.
+        const warningAfter = Number(data.warning_after_seconds || 120);
+        const elapsed = Number(data.session_uptime_seconds || 0);
+        const remaining = Math.max(0, warningAfter - elapsed);
+        document.getElementById('warning-timer').innerText = formatTime(remaining);
+        const warningDue = Boolean(data.warning_due) || remaining === 0;
+        document.getElementById('warningTimerBadge').style.color = warningDue ? 'var(--danger)' : 'var(--text-muted)';
+        document.getElementById('warningTimerBadge').title = warningDue ? 'Check-in reminder has triggered for this session.' : 'Time until the next eye-comfort check-in.';
+        document.getElementById('blink-note').innerText = data.demo_mode
+          ? 'Demo estimate only — blink values are simulated for presentation.'
+          : 'Blink tracking is unavailable with the current face detector.';
+
+      } catch (err) {
+        document.getElementById('connection-banner').style.display = 'flex';
+        if (!offlineAlertSent) {
+          sendAlert('backend-offline', 'danger', 'Monitoring engine disconnected', 'The dashboard cannot reach Flask on port 5000. Start proto5_fixed.py and check that port 5000 is available.', { cooldown: 0 });
+          offlineAlertSent = true;
+        }
+        isConnected = false;
+        setConnectionStatus(false, 'Engine disconnected · check local server');
+      }
+    }
+
+    // Camera Switch Handler
+    async function handleCameraSwitch(index) {
+      try {
+        const response = await fetch(`${BACKEND_URL}/api/camera`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ index: parseInt(index) })
+        });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(result.message || 'Camera switch was rejected.');
+        const img = document.getElementById('videoStream');
+        img.src = `${BACKEND_URL}/video_feed?t=${Date.now()}`;
+        sendAlert('camera-switched', 'success', 'Camera switched', result.status || `Camera ${index} selected.`, { cooldown: 0, notify: false });
+      } catch (e) {
+        sendAlert('camera-switch-failed', 'warning', 'Camera switch failed', e.message || 'Check camera permissions or choose another camera.', { cooldown: 0 });
+      }
+    }
+
+    // Manual Light Toggle (Cycle: Auto -> On -> Off -> Auto)
+    function toggleManualLight() {
+      const btn = document.getElementById('lightToggleBtn');
+      if (manualLightMode === null) {
+        manualLightMode = true;
+        btn.innerText = "Fill Light: Forced ON";
+        btn.classList.add('forced-on');
+      } else if (manualLightMode === true) {
+        manualLightMode = false;
+        btn.innerText = "Fill Light: Forced OFF";
+        btn.classList.remove('forced-on');
+      } else {
+        manualLightMode = null;
+        btn.innerText = "Fill Light: Auto";
+        btn.classList.remove('forced-on');
+      }
+    }
+
+    // Posture Calibration
+    async function handleCalibrate() {
+      const btn = document.querySelector('.btn-calibrate');
+      const originalText = btn.innerText;
+      btn.innerText = 'Calibrating…';
+      btn.disabled = true;
+      try {
+        const response = await fetch(`${BACKEND_URL}/api/calibrate`, { method: 'POST' });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(result.message || 'Calibration was rejected.');
+        sendAlert('calibration-started', 'info', 'Calibration started', 'Sit in your usual comfortable position and keep your face visible for a moment.', { cooldown: 0, notify: false });
+      } catch (e) {
+        sendAlert('calibration-failed', 'warning', 'Calibration failed', e.message || 'Check that the monitoring engine is running.', { cooldown: 0 });
+      } finally {
+        setTimeout(() => { btn.innerText = originalText; btn.disabled = false; }, 900);
+      }
+    }
+
+    // Reset Session
+    async function handleReset() {
+      try {
+        const response = await fetch(`${BACKEND_URL}/api/reset`, { method: 'POST' });
+        if (!response.ok) throw new Error('Reset request failed');
+        noFaceSince = null;
+        postureWarningSince = null;
+        lookingAwaySince = null;
+        checkInAlertSent = false;
+        activeAlertKeys.clear();
+        alertCooldowns.clear();
+        sendAlert('session-reset', 'success', 'Session reset', 'Monitoring counters and alert timers have been reset.', { cooldown: 0, notify: false });
+      } catch (e) {
+        sendAlert('reset-failed', 'danger', 'Could not reset session', 'The monitoring engine did not confirm the reset. Check that the server is running.', { cooldown: 0 });
+      }
+    }
+
+    // Catch a camera stream failure independently from telemetry polling.
+    document.getElementById('videoStream').addEventListener('error', () => {
+      sendAlert('video-stream-error', 'warning', 'Camera stream unavailable', 'Check camera permissions or select another camera. Telemetry may still be available.', { cooldown: 30000 });
+    });
+
+    // Start immediately so the connection state is visible without waiting for the first interval.
+    fetchTelemetry();
+    setInterval(fetchTelemetry, 500);
+  </script>
+</body>
+</html>
