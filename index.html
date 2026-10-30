@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ErgoVision — Eye Comfort</title>
+<style>
+:root{--cream:#f8f4ed;--card:#fffdf9;--plum:#51364b;--plum2:#76586d;--ink:#302a30;--muted:#827982;--line:#e8dfd7;--rose:#f2dfe3;--green:#dcebe0;--gold:#d9b878;--red:#b84e54}
+*{box-sizing:border-box}body{margin:0;font-family:"Segoe UI",Arial,sans-serif;background:var(--cream);color:var(--ink);transition:background .25s}
+.app{width:min(1120px,93%);margin:auto;padding:25px 0 38px}
+header{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-bottom:25px}.brand{display:flex;align-items:center;gap:12px}.logo{width:44px;height:44px;display:grid;place-items:center;border-radius:15px;background:var(--plum);color:#fff;font-size:22px}h1{font-size:23px;margin:0 0 3px}h2,p{margin-top:0}.sub,.muted{color:var(--muted)}.sub{font-size:13px;margin:0}.status{display:flex;align-items:center;gap:8px;background:var(--green);color:#315e43;padding:9px 13px;border-radius:99px;font-size:13px;font-weight:650}.dot{width:8px;height:8px;border-radius:50%;background:#43865b}
+.hero{background:var(--plum);color:white;border-radius:24px;padding:27px;display:flex;align-items:center;justify-content:space-between;gap:22px;margin-bottom:18px;position:relative;overflow:hidden}.hero:after{content:"✿";position:absolute;right:25px;bottom:-55px;color:#ffffff12;font-size:190px;pointer-events:none}.hero h2{font-size:clamp(23px,4vw,32px);margin-bottom:9px}.hero p{color:#e7dce5;max-width:560px;line-height:1.55;margin:0}.hero-actions{display:flex;gap:9px;flex-wrap:wrap;z-index:1}
+button,select{font:inherit;border:1px solid var(--line);border-radius:12px;padding:10px 13px;background:var(--card);color:var(--ink)}button{cursor:pointer;font-weight:650;transition:transform .15s}button:hover{transform:translateY(-1px)}button:disabled{opacity:.5;cursor:not-allowed}.primary{background:var(--gold);border-color:var(--gold);color:#342638}.dark-btn{background:#fff;color:var(--plum);border-color:#fff}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px;margin-bottom:18px}.card{background:var(--card);border:1px solid var(--line);border-radius:19px;padding:19px;box-shadow:0 5px 18px #3f2a3908}.metric-icon{font-size:20px;margin-bottom:12px}.label{color:var(--muted);font-size:13px;margin-bottom:12px}.metric{font-size:30px;font-weight:750;letter-spacing:-1px;margin-bottom:5px}.hint{color:var(--muted);font-size:12px;line-height:1.5;margin:0}
+.section-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:23px 0 12px}.section-head h2{font-size:18px;margin:0}.section-head p{font-size:12px;color:var(--muted);margin:0}
+.columns{display:grid;grid-template-columns:1fr 1fr;gap:15px}.control-row{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:13px 0;border-bottom:1px solid var(--line)}.control-row:last-child{border-bottom:0}.control-row strong{display:block;font-size:14px;margin-bottom:4px}.control-row small{color:var(--muted);font-size:12px;line-height:1.4;display:block}.switch{width:45px;height:26px;padding:3px;background:#d7cbd4;border:0;border-radius:99px;flex:0 0 auto}.switch span{display:block;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .2s}.switch.on{background:var(--plum2)}.switch.on span{transform:translateX(19px)}
+.range-wrap{padding-top:8px}.range-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}.range-top strong{font-size:14px}input[type=range]{width:100%;accent-color:var(--plum)}.range-labels{display:flex;justify-content:space-between;color:var(--muted);font-size:12px}.camera-box{background:#211b22;border-radius:15px;overflow:hidden;min-height:190px;display:grid;place-items:center;color:#eee;margin:12px 0}.camera-box img{width:100%;max-height:290px;object-fit:cover;display:none}.camera-placeholder{text-align:center;padding:28px 18px;color:#d9cfd9;font-size:13px;line-height:1.5}.camera-actions{display:flex;gap:8px;flex-wrap:wrap}.camera-meta{display:flex;justify-content:space-between;gap:10px;font-size:12px;color:var(--muted);margin-top:12px}
+.alert-list{display:grid;gap:9px}.alert{display:flex;gap:10px;align-items:flex-start;background:#fff8f1;border:1px solid #f0e1d3;border-radius:13px;padding:11px}.alert-symbol{width:30px;height:30px;display:grid;place-items:center;background:var(--rose);border-radius:10px;flex:0 0 auto}.alert strong{display:block;font-size:13px;margin:1px 0 4px}.alert p{font-size:12px;color:var(--muted);margin:0;line-height:1.4}.empty{color:var(--muted);font-size:13px;padding:6px 0}.notice{margin-top:15px;border:1px dashed #d7c8d3;border-radius:13px;padding:12px 14px;color:var(--muted);font-size:12px;line-height:1.5}.toast{position:fixed;top:16px;right:16px;width:min(350px,calc(100% - 32px));background:var(--plum);color:white;border-radius:14px;padding:15px 17px;box-shadow:0 12px 35px #24152635;z-index:10;display:none}.toast.show{display:block;animation:slide .22s ease}.toast strong{display:block;margin-bottom:4px}.toast span{font-size:13px;color:#e8dfe8}@keyframes slide{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}.badge{display:inline-block;padding:5px 8px;border-radius:99px;background:#eee6ed;color:var(--plum);font-size:11px;font-weight:700}.summary-row{display:flex;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:1px solid var(--line);font-size:13px}.summary-row:last-child{border:0}.summary-row span:last-child{font-weight:700}.good{color:#34734a}.warn{color:#a26a27}footer{text-align:center;color:var(--muted);font-size:12px;padding-top:24px}
+@media(max-width:760px){.grid{grid-template-columns:1fr 1fr}.columns{grid-template-columns:1fr}.hero{align-items:flex-start;flex-direction:column}}@media(max-width:480px){.grid{grid-template-columns:1fr}header{align-items:flex-start;flex-direction:column}.app{width:94%;padding-top:17px}.hero,.card{padding:17px}}
+</style>
+</head>
+<body>
+<div class="toast" id="toast" role="status" aria-live="polite"><strong id="toastTitle">Reminder</strong><span id="toastMessage">Take a moment for your eyes.</span></div>
+<main class="app">
+<header>
+  <div class="brand"><div class="logo">✿</div><div><h1>ErgoVision</h1><p class="sub">A calmer way to work at your screen</p></div></div>
+  <div class="status"><span class="dot" id="statusDot"></span><span id="statusText">Python server connected</span></div>
+</header>
+<section class="hero">
+  <div><h2>Give your eyes a little care.</h2><p>Comfort reminders, webcam-based face and eye checks, and a Windows warmth control in one simple prototype.</p></div>
+  <div class="hero-actions"><button class="primary" id="sessionButton">Start session</button><button class="dark-btn" id="testAlertButton">Test alert</button></div>
+</section>
+<section class="grid" aria-label="Session overview">
+  <article class="card"><div class="metric-icon">◷</div><div class="label">Current session</div><div class="metric" id="sessionTime">00:00</div><p class="hint">Time spent in this session</p></article>
+  <article class="card"><div class="metric-icon">◉</div><div class="label">Blink events (estimate)</div><div class="metric" id="blinkCount">0</div><p class="hint" id="blinkHint">Start the camera for an approximate count.</p></article>
+  <article class="card"><div class="metric-icon">♡</div><div class="label">Comfort score</div><div class="metric" id="comfortScore">—</div><p class="hint">A habit indicator, not a medical assessment</p></article>
+</section>
+<div class="section-head"><h2>Camera monitoring</h2><p>Processed locally on this PC</p></div>
+<section class="columns">
+<article class="card">
+  <div class="control-row" style="padding-top:0"><div><strong>Webcam check</strong><small>Detects face presence and estimates open-eye changes.</small></div><span class="badge" id="cameraBadge">OFF</span></div>
+  <div class="camera-box"><img id="cameraImage" alt="Live webcam preview"><div class="camera-placeholder" id="cameraPlaceholder">◉<br><br>Your camera preview will appear here.<br>Click Start camera to allow access.</div></div>
+  <div class="camera-actions"><button class="primary" id="cameraStart">Start camera</button><button id="cameraStop" disabled>Stop camera</button></div>
+  <div class="camera-meta"><span id="faceStatus">Face: not checked</span><span id="eyeStatus">Eyes: not checked</span></div>
+  <div class="notice">Camera checks use OpenCV's built-in face/eye detectors. Lighting, glasses, and camera angle can affect results; this is a prototype, not medical or clinical tracking.</div>
+</article>
+<article class="card">
+  <div class="section-head" style="margin-top:0"><h2>Comfort controls</h2><span class="badge">Windows</span></div>
+  <div class="control-row"><div><strong>System screen warmth</strong><small>Applies a subtle colour-warmth filter to supported Windows displays.</small></div><button class="switch" id="systemWarmthToggle" aria-label="Toggle system warmth" aria-pressed="false"><span></span></button></div>
+  <div class="range-wrap"><div class="range-top"><strong>Warmth level</strong><strong id="warmthValue">25%</strong></div><input type="range" id="warmthSlider" min="0" max="100" value="25" aria-label="Screen warmth level"><div class="range-labels"><span>Neutral</span><span>Warmer</span></div></div>
+  <div class="control-row"><div><strong>Blink reminders</strong><small>Prompt you to blink gently and look into the distance.</small></div><button class="switch on" id="blinkToggle" aria-label="Toggle blink reminders" aria-pressed="true"><span></span></button></div>
+  <div class="control-row"><div><strong>Posture reminders</strong><small>Periodic posture check-in; not automatic posture detection.</small></div><button class="switch on" id="postureToggle" aria-label="Toggle posture reminders" aria-pressed="true"><span></span></button></div>
+  <div class="notice" id="warmthNote">System warmth is off. Some graphics drivers may not support the Windows gamma adjustment.</div>
+</article>
+</section>
+<div class="section-head"><h2>Recent alerts</h2><p>Latest four notifications</p></div>
+<section class="columns">
+<article class="card"><div class="alert-list" id="alertList"><p class="empty" id="emptyAlerts">No alerts yet. Start a session or test an alert.</p></div></article>
+<article class="card"><div class="section-head" style="margin-top:0"><h2>Today's summary</h2><button id="exportButton">Export JSON</button></div>
+  <div class="summary-row"><span>Session time this run</span><span id="summaryTime">00:00</span></div>
+  <div class="summary-row"><span>Reminders shown</span><span id="summaryReminders">0</span></div>
+  <div class="summary-row"><span>Camera status</span><span id="summaryCamera">Off</span></div>
+  <div class="summary-row"><span>System warmth</span><span id="summaryWarmth">Off</span></div>
+  <div class="notice">Privacy: frames are processed on your computer and are not uploaded by this prototype. The export file contains only this session's summary.</div>
+</article>
+</section>
+<footer>ErgoVision · Small reminders, healthier screen habits</footer>
+</main>
+<script>
+const $ = id => document.getElementById(id);
+let running=false, seconds=0, reminders=0, timer=null, toastTimer=null;
+let blinkOn=true, postureOn=true, cameraOn=false, systemWarmthOn=false;
+let previousBlinkCount=0, latestStatus={};
+const sessionButton=$("sessionButton");
+
+function fmt(s){return String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0")}
+function toast(title,message){$("toastTitle").textContent=title;$("toastMessage").textContent=message;$("toast").classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>$("toast").classList.remove("show"),4500)}
+function setSwitch(button,on){button.classList.toggle("on",on);button.setAttribute("aria-pressed",String(on))}
+function alertItem(title,message){const empty=$("emptyAlerts");if(empty)empty.remove();const item=document.createElement("div");item.className="alert";const sym=document.createElement("div");sym.className="alert-symbol";sym.textContent="✿";const body=document.createElement("div");const h=document.createElement("strong");h.textContent=title;const p=document.createElement("p");p.textContent=new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})+" · "+message;body.append(h,p);item.append(sym,body);$("alertList").prepend(item);while($("alertList").children.length>4)$("alertList").lastElementChild.remove();toast(title,message);reminders++;$("summaryReminders").textContent=reminders}
+function updateClock(){$("sessionTime").textContent=fmt(seconds);$("summaryTime").textContent=fmt(seconds);$("comfortScore").textContent=String(Math.max(60,100-Math.floor(seconds/300)*2))}
+async function api(path,method="GET",data=null){const opts={method,headers:{}};if(data){opts.headers["Content-Type"]="application/json";opts.body=JSON.stringify(data)}const response=await fetch(path,opts);let body={};try{body=await response.json()}catch{}if(!response.ok)throw new Error(body.error||"Request failed");return body}
+function startClock(){if(timer)return;timer=setInterval(()=>{if(!running)return;seconds++;updateClock();if(seconds%60===0&&blinkOn)alertItem("Blink reminder","Blink gently and look at something in the distance.");if(seconds%120===0&&postureOn)alertItem("Posture check","Relax your shoulders and sit comfortably.");},1000)}
+sessionButton.addEventListener("click",()=>{running=!running;if(running){sessionButton.textContent="End session";$("statusText").textContent="Session running";startClock();alertItem("Session started","Your comfort session is running.")}else{sessionButton.textContent="Start session";$("statusText").textContent=cameraOn?"Camera monitoring":"Python server connected";alertItem("Session ended","Session duration: "+fmt(seconds)+".")}});
+$("testAlertButton").addEventListener("click",()=>alertItem("Test alert","Alerts are working correctly."));
+$("blinkToggle").addEventListener("click",()=>{blinkOn=!blinkOn;setSwitch($("blinkToggle"),blinkOn);alertItem("Blink reminders",blinkOn?"Reminders enabled.":"Reminders paused.")});
+$("postureToggle").addEventListener("click",()=>{postureOn=!postureOn;setSwitch($("postureToggle"),postureOn);alertItem("Posture reminders",postureOn?"Reminders enabled.":"Reminders paused.")});
+$("warmthSlider").addEventListener("input",async()=>{const value=Number($("warmthSlider").value);$("warmthValue").textContent=value+"%";try{if(systemWarmthOn){const r=await api("/api/warmth","POST",{enabled:true,level:value});$("warmthNote").textContent=r.message}}catch(e){$("warmthNote").textContent=e.message}});
+$("systemWarmthToggle").addEventListener("click",async()=>{const next=!systemWarmthOn;try{const r=await api("/api/warmth","POST",{enabled:next,level:Number($("warmthSlider").value)});systemWarmthOn=next;setSwitch($("systemWarmthToggle"),systemWarmthOn);$("summaryWarmth").textContent=systemWarmthOn?"On":"Off";$("warmthNote").textContent=r.message;alertItem("System screen warmth",r.message)}catch(e){toast("Warmth unavailable",e.message);$("warmthNote").textContent=e.message}});
+$("cameraStart").addEventListener("click",async()=>{ $("cameraStart").disabled=true;try{const r=await api("/api/camera/start","POST",{});cameraOn=true;$("cameraBadge").textContent="ON";$("cameraBadge").style.background="#dcebe0";$("cameraImage").src="/camera_feed?time="+Date.now();$("cameraImage").style.display="block";$("cameraPlaceholder").style.display="none";$("cameraStop").disabled=false;$("summaryCamera").textContent="On";$("statusText").textContent="Camera monitoring";alertItem("Camera started",r.message);pollStatus()}catch(e){toast("Camera could not start",e.message);$("faceStatus").textContent="Face: unavailable";}finally{$("cameraStart").disabled=false}});
+$("cameraStop").addEventListener("click",async()=>{try{await api("/api/camera/stop","POST",{});}catch{}cameraOn=false;$("cameraImage").removeAttribute("src");$("cameraImage").style.display="none";$("cameraPlaceholder").style.display="block";$("cameraStop").disabled=true;$("cameraBadge").textContent="OFF";$("summaryCamera").textContent="Off";$("faceStatus").textContent="Face: not checked";$("eyeStatus").textContent="Eyes: not checked";$("statusText").textContent=running?"Session running":"Python server connected";alertItem("Camera stopped","Webcam processing has stopped.");});
+async function pollStatus(){if(!cameraOn)return;try{const s=await api("/api/status");latestStatus=s;$("faceStatus").textContent="Face: "+(s.face_detected?"detected":"not detected");$("eyeStatus").textContent="Eyes: "+(s.eyes_detected===null?"checking":s.eyes_detected?"open/detected":"not detected");$("blinkCount").textContent=s.blinks||0;$("blinkHint").textContent="Approximate count from webcam eye detection.";if(s.blinks>(previousBlinkCount)){previousBlinkCount=s.blinks;if(blinkOn)alertItem("Possible blink detected","Eye detection changed; this estimate may be imperfect.")}if(s.face_detected===false&&running){} }catch(e){}if(cameraOn)setTimeout(pollStatus,1400)}
+$("exportButton").addEventListener("click",()=>{const data={project:"ErgoVision",exportedAt:new Date().toISOString(),sessionDuration:fmt(seconds),sessionSeconds:seconds,remindersShown:reminders,blinkEventsEstimated:Number($("blinkCount").textContent)||0,cameraRunning:cameraOn,systemWarmthEnabled:systemWarmthOn,warmthLevel:Number($("warmthSlider").value)};const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="ergovision-summary.json";a.click();URL.revokeObjectURL(url);toast("Summary exported","Your JSON summary was downloaded.")});
+async function checkServer(){try{await api("/api/status");$("statusText").textContent="Python server connected"}catch{$("statusText").textContent="Server disconnected";$("statusDot").style.background="#b84e54"}}
+checkServer();
+</script>
+</body>
+</html>
